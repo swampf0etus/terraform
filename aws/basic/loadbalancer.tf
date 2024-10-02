@@ -1,5 +1,7 @@
 # AWS Loadbalancer
 
+data "aws_elb_service_account" "root" {}
+
 resource "aws_lb" "nginx" {
   name                       = "bgra-lb"
   internal                   = false
@@ -7,6 +9,13 @@ resource "aws_lb" "nginx" {
   security_groups            = [aws_security_group.lb_sg.id]
   subnets                    = [aws_subnet.public_subnet1.id, aws_subnet.public_subnet2.id]
   enable_deletion_protection = false
+  depends_on                 = [aws_s3_bucket_policy.web_bucket]
+
+  access_logs {
+    bucket  = aws_s3_bucket.web_bucket.bucket
+    prefix  = "alb-logs"
+    enabled = true
+  }
 
   tags = local.common_tags
 }
