@@ -46,20 +46,12 @@ POLICY_END
 }
 
 
-resource "aws_s3_object" "webpage" {
-  bucket = aws_s3_bucket.web_bucket.bucket
-  key    = "/website/index.html"
-  source = "./website/index.html"
+resource "aws_s3_object" "s3_website_objects" {
+  for_each = local.s3_web_objects
+  bucket   = aws_s3_bucket.web_bucket.bucket
+  key      = each.value
+  source   = "${path.root}/${each.value}"
 
-  tags = local.common_tags
-}
-
-
-resource "aws_s3_object" "image" {
-  bucket = aws_s3_bucket.web_bucket.bucket
-  key    = "/website/girl_chase_pickle.webp"
-  source = "./website/girl_chase_pickle.webp"
-
-  tags = local.common_tags
+  tags = merge(local.common_tags, { Name = "${var.naming_prefix}-s3-web-object-${each.key}" })
 }
 

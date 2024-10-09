@@ -1,8 +1,11 @@
 locals {
+  naming_prefix = "${var.naming_prefix}-${var.environment}"
+
   common_tags = {
     company       = var.company
     project       = "${var.company}-${var.project}"
     billiing_code = var.billiing_code
+    environment   = var.environment
   }
 
   web_app_user_data = [
@@ -16,15 +19,6 @@ sudo rm /usr/share/nginx/html/index.html
 sudo cp /home/ec2-user/girl_chase_pickle.webp /usr/share/nginx/html/
 sudo cp /home/ec2-user/index.html /usr/share/nginx/html/
 END_DATA
-    /*
-    <<EOF
-#!/bin/bash
-sudo amazon-linux-extras install -y nginx1
-sudo service nginx start
-sudo rm /usr/share/nginx/html/index.html
-echo "<head><body><title>Pickles 1</title><h1>Have a pickle!</h1></body></head>" > /usr/share/nginx/html/index.html
-EOF
-*/
     ,
     <<END_DATA
 #!/bin/bash
@@ -36,18 +30,14 @@ sudo rm /usr/share/nginx/html/index.html
 sudo cp /home/ec2-user/girl_chase_pickle.webp /usr/share/nginx/html/
 sudo cp /home/ec2-user/index.html /usr/share/nginx/html/
 END_DATA
-    /*
-    <<EOF
-#!/bin/bash
-sudo amazon-linux-extras install -y nginx1
-sudo service nginx start
-sudo rm /usr/share/nginx/html/index.html
-echo "<head><body><title>Pickles 2</title><h1>Have two pickles!</h1></body></head>" > /usr/share/nginx/html/index.html
-EOF
-*/
   ]
 
-  s3_bucket_name = "bgra-web-app-${random_integer.s3.result}"
+  s3_bucket_name = lower("${local.naming_prefix}-${random_integer.s3.result}")
+
+  s3_web_objects = {
+    home   = "/website/index.html"
+    pickle = "/website/girl_chase_pickle.webp"
+  }
 }
 
 
