@@ -9,8 +9,27 @@ data "aws_availability_zones" "available" {
 
 # Networking #
 
-# Gateway
+# VPC
 
+module "app" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "5.13.0"
+
+  cidr = var.vpc_cidr_block
+
+  azs = slice(data.aws_availability_zones.available.names, 0, length(data.aws_availability_zones.available.names))
+  #private_subnets = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+  public_subnets = [for subnet in range(var.vpc_public_subnet_count) : cidrsubnet(var.vpc_cidr_block, 8, subnet)]
+
+  enable_nat_gateway      = false
+  enable_vpn_gateway      = false
+  enable_dns_hostnames    = true                        # make var
+  map_public_ip_on_launch = var.map_public_ip_on_launch # VM's get public ip on launch
+
+  tags = merge(local.common_tags, { Name = "${local.naming_prefix}-vpc" })
+}
+
+/*  REPLACED BY VPC MODULE ABOVE
 resource "aws_vpc" "app" {
   cidr_block           = var.vpc_cidr_block
   enable_dns_hostnames = true
@@ -56,13 +75,13 @@ resource "aws_route_table_association" "app_subnets" {
   subnet_id      = aws_subnet.public_subnets[count.index].id
   route_table_id = aws_route_table.app.id
 }
-
+*/
 
 # Security groups
 
 resource "aws_security_group" "lb_sg" {
   name   = "${local.naming_prefix}-nginx_lb_sg"
-  vpc_id = aws_vpc.app.id
+  vpc_id = module.app.vpc_id
   tags   = local.common_tags
 
   # HTTP inbound from anywhere
@@ -84,7 +103,7 @@ resource "aws_security_group" "lb_sg" {
 
 resource "aws_security_group" "nginx_sg" {
   name   = "${local.naming_prefix}-nginx_sg"
-  vpc_id = aws_vpc.app.id
+  vpc_id = module.app.vpc_id //aws_vpc.app.id
   tags   = local.common_tags
 
   # HTTP inbound from anywhere
