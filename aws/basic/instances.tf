@@ -13,61 +13,12 @@ resource "aws_instance" "nginx_instances" {
   subnet_id              = module.app.public_subnets[(count.index % length(module.app.public_subnets))] // aws_subnet.public_subnets[(count.index % var.vpc_public_subnet_count)].id
   vpc_security_group_ids = [aws_security_group.nginx_sg.id]
   user_data = templatefile("${path.module}/templates/startup_script.tpl", {
-    s3_bucket_name = aws_s3_bucket.web_bucket.id
+    s3_bucket_name = module.app_s3_bucket.web_bucket.id
   })
-  iam_instance_profile = aws_iam_instance_profile.nginx_profile.name
-  depends_on           = [aws_iam_role_policy.allow_s3_all]
+  iam_instance_profile = module.app_s3_bucket.instance_profile.name
+  depends_on           = [module.app_s3_bucket]
 
   tags = merge(local.common_tags, { Name = "${var.naming_prefix}-nginx-instance-${count.index}" })
 }
 
-
-resource "aws_iam_role" "allow_nginx_s3" {
-  name               = "allow_nginx_s3"
-  assume_role_policy = <<POLICY_END
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": "sts:AssumeRole",
-      "Principal": {
-        "Service": "ec2.amazonaws.com"
-      },
-      "Effect": "Allow",
-      "Sid": ""
-    }
-  ]
-}
-POLICY_END
-}
-
-resource "aws_iam_instance_profile" "nginx_profile" {
-  name = "${local.naming_prefix}-nginx_profile"
-  role = aws_iam_role.allow_nginx_s3.name
-
-  tags = local.common_tags
-}
-
-
-resource "aws_iam_role_policy" "allow_s3_all" {
-  name   = "${local.naming_prefix}-allow_s3_all"
-  role   = aws_iam_role.allow_nginx_s3.name
-  policy = <<POLICY_END
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": [
-        "s3:*"
-      ],
-      "Effect": "Allow",
-      "Resource": [
-        "arn:aws:s3:::${local.s3_bucket_name}",
-        "arn:aws:s3:::${local.s3_bucket_name}/*"
-      ]
-    }
-  ]
-}
-POLICY_END
-}
 

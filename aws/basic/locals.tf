@@ -13,8 +13,8 @@ locals {
 #!/bin/bash
 sudo amazon-linux-extras install -y nginx1
 sudo service nginx start
-aws s3 cp s3://${aws_s3_bucket.web_bucket.id}/website/index.html /home/ec2-user/index.html
-aws s3 cp s3://${aws_s3_bucket.web_bucket.id}/website/girl_chase_pickle.webp /home/ec2-user/girl_chase_pickle.webp
+aws s3 cp s3://${module.app_s3_bucket.web_bucket.id}/website/index.html /home/ec2-user/index.html
+aws s3 cp s3://${module.app_s3_bucket.web_bucket.id}/website/girl_chase_pickle.webp /home/ec2-user/girl_chase_pickle.webp
 sudo rm /usr/share/nginx/html/index.html
 sudo cp /home/ec2-user/girl_chase_pickle.webp /usr/share/nginx/html/
 sudo cp /home/ec2-user/index.html /usr/share/nginx/html/
@@ -24,8 +24,8 @@ END_DATA
 #!/bin/bash
 sudo amazon-linux-extras install -y nginx1
 sudo service nginx start
-aws s3 cp s3://${aws_s3_bucket.web_bucket.id}/website/index.html /home/ec2-user/index.html
-aws s3 cp s3://${aws_s3_bucket.web_bucket.id}/website/girl_chase_pickle.webp /home/ec2-user/girl_chase_pickle.webp
+aws s3 cp s3://${module.app_s3_bucket.web_bucket.id}/website/index.html /home/ec2-user/index.html
+aws s3 cp s3://${module.app_s3_bucket.web_bucket.id}/website/girl_chase_pickle.webp /home/ec2-user/girl_chase_pickle.webp
 sudo rm /usr/share/nginx/html/index.html
 sudo cp /home/ec2-user/girl_chase_pickle.webp /usr/share/nginx/html/
 sudo cp /home/ec2-user/index.html /usr/share/nginx/html/
